@@ -27,6 +27,8 @@ namespace webapp.mqtt
             options = new MqttClientOptionsBuilder()
                 .WithClientId(_config.ClientId)
                 .WithTcpServer(_config.Host)
+                .WithCredentials(_config.Username, _config.Password)
+                
                 .WithCleanSession()
                 .Build();
 

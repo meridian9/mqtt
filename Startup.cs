@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using webapp.repos;
 using webapp.interfaces;
 using webapp.mqtt;
+using Microsoft.Extensions.Logging;
+using NLog.Web;
 
 namespace webapp
 {
@@ -24,6 +26,8 @@ namespace webapp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var logger = NLog.Web.NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+            services.AddLogging();
             services.Configure<PubSubConfig>(options => Configuration.GetSection("PubSubConfig").Bind(options));
             services.AddSingleton<IPubSub, PubSub>();
             services.AddTransient<IIdentityRepo, IdentityRepo>();
@@ -37,7 +41,10 @@ namespace webapp
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IPubSub pubsub)
         {
-            pubsub.Subscribe("log/identity", (msg) => Console.WriteLine(msg));
+            pubsub.Subscribe("log/identity", (msg) => {
+                var logger = NLog.Web.NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+                logger.Info(msg);
+            });
 
             if (env.IsDevelopment())
             {
